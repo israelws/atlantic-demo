@@ -42,20 +42,26 @@ router.get('/loads-query', async function(req, res){
   var result = [];
 
   for (var i = 0; i < loads_data.length; i++) {
+    // check for max
+    if(count > max){
+      break;
+    }
     //check for origin only 
-    if( origin && !destination){
+    if( origin && !destination || origin && destination==""){
       if (loads_data[i]['Origin State'] == origin) {
         result.push(loads_data[i]);
         count++;
       }
+      continue;
     }
 
     //check for destination only
-    if( !origin && destination){
+    if( !origin && destination || origin=="" && destination){
       if (loads_data[i]['Destination State'] == destination) {
         result.push(loads_data[i]);
         count++;
       }
+      continue;
     }
 
     //check for both origin and destination
@@ -63,13 +69,11 @@ router.get('/loads-query', async function(req, res){
       if (loads_data[i]['Origin State'] == origin && loads_data[i]['Destination State'] == destination) {
         result.push(loads_data[i]);
         count++;
+
       }
     }
 
-    // check for max
-    if(count == max){
-      break;
-    }
+    
     
   }
   res.send(result);
@@ -78,8 +82,6 @@ router.get('/loads-query', async function(req, res){
 app.use('/', router);
 
 const port = process.env.PORT || 3001;
-
-app.get("/", (req, res) => res.type('html').send(html));
 
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
