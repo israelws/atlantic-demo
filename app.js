@@ -29,6 +29,52 @@ router.get('/loads-data', async function(req, res){
   res.send({});
 });
 
+router.get('/loads-query', async function(req, res){
+  const origin = req.query.origin;
+  const destination = req.query.destination;
+
+  const spreadsheetId = '1_A8uu2070OapLEBjwcs1ckJ2KbcDX1f0PjxHFVgqPsc'
+  const parser = new PublicGoogleSheetsParser(spreadsheetId)
+  var loads_data = await parser.parse();
+
+  var max = 3;
+  var count = 0;
+  var result = [];
+
+  for (var i = 0; i < loads_data.length; i++) {
+    //check for origin only 
+    if( origin && !destination){
+      if (loads_data[i]['Origin State'] == origin) {
+        result.push(loads_data[i]);
+        count++;
+      }
+    }
+
+    //check for destination only
+    if( !origin && destination){
+      if (loads_data[i]['Destination State'] == destination) {
+        result.push(loads_data[i]);
+        count++;
+      }
+    }
+
+    //check for both origin and destination
+    if( origin && destination){
+      if (loads_data[i]['Origin State'] == origin && loads_data[i]['Destination State'] == destination) {
+        result.push(loads_data[i]);
+        count++;
+      }
+    }
+
+    // check for max
+    if(count == max){
+      break;
+    }
+    
+  }
+  res.send(result);
+});
+
 app.use('/', router);
 
 const port = process.env.PORT || 3001;
