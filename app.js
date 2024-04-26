@@ -79,6 +79,48 @@ router.get('/loads-query', async function(req, res){
   res.send(result);
 });
 
+function processPaymentsDate(data){
+  paid= false;
+  payment_date=null;
+  amount=0;
+  currency="USD";
+
+  if(data['xfer2settle_date']){
+    paid = true;
+    payment_date = data['xfer2settle_date'];
+    amount = data['total_charge'];
+    currency = data['total_charge_c']
+  }
+
+  return {
+    paid: paid,
+    payment_date: payment_date,
+    amount: amount,
+    currency: currency
+  };
+}
+
+router.get('/payments-data-by-invoice', async function(req, res){
+  const invoice_id = req.query.invoice_id;
+  const spreadsheetId = '1T6iJSVVlE3HyEV4rjU2rjxSyo383U7MfI9Ce2etsSig'
+  const parser = new PublicGoogleSheetsParser(spreadsheetId)
+  var data = await parser.parse();
+
+  for (var i = 0; i < data.length; i++) {
+    //
+    // console.log(data[i]);
+    if (data[i]['external_invoiceno'] && data[i]['external_invoiceno'] == invoice_id) {
+      res.send(processPaymentsDate(data[i]));
+      return;
+    }
+  }
+  res.send({});
+});
+
+router.get('/', function(req, res){
+  res.send("Welcome to the API");
+});
+
 app.use('/', router);
 
 const port = process.env.PORT || 3001;
